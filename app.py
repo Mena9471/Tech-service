@@ -3,6 +3,7 @@ import pandas as pd
 from datetime import datetime
 import uuid
 import time
+from chatbot import Chatbot
 
 # -----------------------------
 # Page Config
@@ -10,43 +11,40 @@ import time
 st.set_page_config(
     page_title="Service Platform",
     layout="wide",
-    initial_sidebar_state="collapsed"
+    initial_sidebar_state="expanded"
 )
 
-# -----------------------------
-# Custom CSS & Animations (Dark Mode + High Contrast) - الكود المُعدّل يبدأ هنا
-# -----------------------------
 st.markdown("""
     <style>
-    /* Global Styles (Kept as is for styling consistency) */
-    @import url('https://fonts.fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
+    /* Global Styles */
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
     
     html, body, [class*="css"] {
         font-family: 'Poppins', sans-serif;
-        background-color: #0b0f19; /* Very Dark Blue/Black */
+        background-color: #0b0f19;
         color: #ffffff !important; 
         font-size: 16px; 
     }
     
-    /* Main Background Gradient - REMOVED DEFAULT PADDING */
+    /* Main Background Gradient */
     .stApp {
         background: linear-gradient(135deg, #0b0f19 0%, #1a1f35 50%, #251e3e 100%);
         background-attachment: fixed;
     }
     
-    /* Ensure the main block is full width and padding is only inside the content container */
+    /* Ensure the main block is full width */
     .main > div {
-        max-width: 100%; /* Important for full width sections */
+        max-width: 100%;
         padding: 0; 
     }
     
-    /* Content Padding (Apply padding only to the content area, not the full width sections like footer) */
+    /* Content Padding */
     .block-container {
         padding-top: 2rem;
         padding-right: 2rem;
         padding-left: 2rem;
         padding-bottom: 2rem;
-        max-width: 1200px; /* Keep content centered/constrained */
+        max-width: 1200px;
     }
 
     /* Top Navigation Bar */
@@ -76,7 +74,7 @@ st.markdown("""
         animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
     
-    /* Hero Section Styles (Enlarged - KEPT) */
+    /* Hero Section Styles */
     .hero-section {
         text-align: center; 
         padding: 80px 50px !important; 
@@ -87,20 +85,20 @@ st.markdown("""
         margin-bottom: 50px;
     }
 
-    /* 🔥🔥🔥 قاعدة شاملة لجميع نصوص العنوان الأساسية والفقرات لضمان اللون الأبيض 🔥🔥🔥 */
+    /* Ensure all text is white */
     h1, h2, h3, h4, h5, h6, p, span, div, li, a {
         color: #ffffff !important; 
     }
 
-    /* الاستثناءات/القواعد الخاصة التي يجب أن يكون لونها مختلف (مثل الألوان البنفسجية) */
+    /* Exceptions for hero section */
     .hero-section h1 {
-        color: #a29bfe !important; /* لون العنوان البنفسجي في الهيرو سيكشن */
+        color: #a29bfe !important;
     }
     .hero-section p {
-        color: #e0e0e0 !important; /* رمادي فاتح للهيرو ديسكربشن */
+        color: #e0e0e0 !important;
     }
     
-    /* Service Cards (MODIFIED) */
+    /* Service Cards */
     .service-card {
         background: #1e233c; 
         border-radius: 18px;
@@ -152,8 +150,7 @@ st.markdown("""
         margin-top: 10px;
     }
 
-    /* === Buttons (UNIFIED STYLING FOR ALL FORM BUTTONS: LOGIN, REGISTER, CONFIRM BOOKING, SELECT) === */
-    /* هذا يستهدف زر Streamlit الافتراضي st.button */
+    /* === Buttons === */
     .stButton > button {
         background: linear-gradient(135deg, #6c5ce7 0%, #8e44ad 100%);
         color: white !important;
@@ -170,13 +167,13 @@ st.markdown("""
     
     /* Hover state for all general buttons */
     .stButton > button:hover {
-        transform: scale(1.02); /* تغيير بسيط في الحجم */
+        transform: scale(1.02);
         background: linear-gradient(135deg, #8e44ad 0%, #6c5ce7 100%); 
         color: white !important; 
-        box-shadow: 0 0 35px rgba(108, 92, 231, 0.9); /* ظل أقوى */
+        box-shadow: 0 0 35px rgba(108, 92, 231, 0.9);
     }
 
-    /* 🔥🔥🔥 التأكد من أن زر Submit Form (Confirm Booking, Login, Register) يتبع نفس التنسيق */
+    /* Form Submit Button */
     div[data-testid="stFormSubmitButton"] > button {
         background: linear-gradient(135deg, #6c5ce7 0%, #8e44ad 100%) !important;
         color: white !important;
@@ -187,83 +184,70 @@ st.markdown("""
         box-shadow: 0 10px 25px rgba(108, 92, 231, 0.6) !important;
     }
 
-    /* Input Field Labels/Text (Crucial for contrast) */
+    /* Input Field Labels/Text */
     div[data-testid="stForm"] label, 
     div[data-testid="stTextInput"] label,
     div[data-testid="stSelectbox"] label,
     div[data-testid="stDateInput"] label,
     div[data-testid="stRadio"] label,
     div[data-testid="stTextArea"] label {
-        color: #ffffff !important; /* التسميات الرئيسية بيضاء */
+        color: #ffffff !important;
         font-weight: 600;
     }
     
-    /* Ensures text inside the radio button options is white */
+    /* Radio button text */
     div[data-testid="stRadio"] .stMarkdown,
     div[data-testid="stRadio"] label p {
         color: #ffffff !important;
     }
     
-    /* 🔥🔥🔥 تفعيل اللون الأبيض لعناصر الإدخال والقوائم المنسدلة */
+    /* Input fields */
     input[type="text"], input[type="password"], textarea, 
     div.stDateInput, 
     div.stSelectbox div[data-baseweb="select"] { 
         background-color: #1a1f35 !important;
-        color: #ffffff !important; /* 🔥🔥🔥 تأكيد النص المدخل أبيض */
+        color: #ffffff !important;
         border: 1px solid rgba(255,255,255,0.2) !important;
         border-radius: 8px;
     }
     
-    /* ----------------------------------------------------------------------------------- */
-    /* 🔥🔥🔥 FINAL FIX: FORCE EVERYTHING BLACK (Box + List) 🔥🔥🔥 */
-            
-
-
-    /* === PART 1: THE SELECT BOX (The main button you click) === */
-    /* This targets the container of the selected value */
+    /* Select Box Styling */
     div[data-baseweb="select"] > div {
-        background-color: #000000 !important; /* Force Black Background */
-        color: #ffffff !important;             /* Force White Text */
-        border: 1px solid #6c5ce7 !important;  /* Dark Border */
+        background-color: #000000 !important;
+        color: #ffffff !important;
+        border: 1px solid #6c5ce7 !important;
     }
     
-    /* Force the text inside the box (e.g., "All") to be white */
     div[data-baseweb="select"] span {
         color: #ffffff !important;
     }
     
-    /* Force the arrow icon to be white */
     div[data-baseweb="select"] svg {
         fill: #ffffff !important;
         color: #ffffff !important;
     }
 
-    /* === PART 2: THE DROPDOWN LIST (The popup menu) === */
-    /* Target the popover container and the list itself */
+    /* Dropdown List */
     div[data-baseweb="popover"],
     div[data-baseweb="menu"],
     ul[data-baseweb="menu"] {
-        background-color: #000000 !important; /* Force Black Background */
+        background-color: #000000 !important;
         border: 1px solid #333333 !important;
     }
 
-    /* Target the individual options */
     li[data-baseweb="option"] {
         background-color: #4a2985 !important;
         color: #ffffff !important;
     }
 
-    /* Target the text inside the options */
     li[data-baseweb="option"] div {
         color: #ffffff !important; 
     }
 
-    /* Hover State (Dark Grey) */
     li[data-baseweb="option"]:hover {
         background-color: #6c5ce7 !important;
     }
     
-    /* Selected Item (Purple) */
     li[data-baseweb="option"][aria-selected="true"] {
         background-color: #5f27cd !important;
     }
@@ -272,10 +256,8 @@ st.markdown("""
         background-color: #000000 !important;
         border: 1px solid #5f27cd !important;
     }
-    /* ----------------------------------------------------------------------------------- */
 
-
-    /* Styling for Home Page Auth Buttons (LOGIN/REGISTER on HOME page) */
+    /* Home Page Auth Buttons */
     .home-auth-button button {
         background: linear-gradient(135deg, #8e44ad 0%, #6c5ce7 100%);
         padding: 15px 30px !important;
@@ -287,7 +269,7 @@ st.markdown("""
         transform: scale(1.05) translateY(-2px);
     }
 
-    /* Style for Role Selection Buttons on Register Page (Kept as is) */
+    /* Role Selection Buttons */
     .auth-role-button button {
         background: #1e233c !important; 
         border: 2px solid #a29bfe !important; 
@@ -314,9 +296,8 @@ st.markdown("""
         transform: scale(1.02);
         box-shadow: 0 8px 20px rgba(108, 92, 231, 0.7) !important;
     }
-    /* =================================================================== */
     
-    /* About Us Cards Styling (Kept from last fix, confirming white text) */
+    /* About Us Cards */
     .about-card {
         background: #1e233c; 
         border-radius: 18px;
@@ -350,7 +331,7 @@ st.markdown("""
         line-height: 1.6;
     }
 
-    /* Footer Styling (KEPT) */
+    /* Footer Styling */
     .footer-container {
         width: 100vw; 
         position: relative;
@@ -382,7 +363,7 @@ st.markdown("""
     .footer p {
         margin: 5px 0;
         font-size: 14px;
-        color: #ffffff !important; /* 🔥🔥 تأكيد النص في الفوتر أبيض */
+        color: #ffffff !important;
     }
     .footer a {
         color: #a29bfe;
@@ -399,19 +380,107 @@ st.markdown("""
         color: #a29bfe;
     }
 
-    /* 🔥🔥🔥 قاعدة إضافية لضمان لون النص الأبيض في جميع مكونات Streamlit */
+    /* Ensure all Streamlit components have white text */
     [data-testid*="st"] span, [data-testid*="st"] p, [data-testid*="st"] div {
         color: #ffffff !important;
+    }
+
+    chatbot-container {
+        background-color: white !important;
+        border-radius: 15px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        border: 1px solid #e0e0e0;
+    }
+    
+    /* Chatbot Header - Colored */
+    .chatbot-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 20px;
+        border-radius: 10px;
+        text-align: center;
+        margin-bottom: 20px;
+    }
+    
+    .chatbot-header h2 {
+        color: white !important;
+        margin: 0;
+        font-size: 24px;
+        font-weight: 700;
+    }
+    
+    .chatbot-header p {
+        color: rgba(255,255,255,0.9) !important;
+        margin: 8px 0 0 0;
+        font-size: 14px;
+    }
+    
+    /* Chat Messages Area */
+    .chat-messages-area {
+        min-height: 300px;
+        max-height: 400px;
+        overflow-y: auto;
+        padding: 15px;
+        background: #f8f9fa;
+        border-radius: 10px;
+        margin-bottom: 15px;
+        border: 1px solid #ddd;
+    }
+    
+    /* Welcome Message */
+    .chat-welcome-message {
+        text-align: center;
+        padding: 40px 20px;
+    }
+    
+    .chat-welcome-message p {
+        color: #555555 !important;
+        margin: 5px 0;
+    }
+    
+    /* DARK TEXT for chatbot content */
+    .chat-messages-area *,
+    .chat-welcome-message *,
+    [data-testid="stChatMessage"] * {
+        color: #333333 !important;
+    }
+    
+    /* User & Assistant Messages */
+    [data-testid="stChatMessage"] {
+        margin-bottom: 15px;
+        padding: 10px;
+        border-radius: 10px;
+        background: white;
+        border: 1px solid #eee;
+    }
+    
+    /* Chat Input Box */
+    .stChatInputContainer textarea {
+        color: #333333 !important;
+        background: white !important;
+        border: 1px solid #6c5ce7 !important;
+        border-radius: 8px;
+        padding: 12px;
+    }
+    
+    /* Clear Chat Button */
+    .clear-chat-btn button {
+        background: linear-gradient(135deg, #6c5ce7 0%, #8e44ad 100%) !important;
+        color: white !important;
+        border: none !important;
+        padding: 12px 24px !important;
+        border-radius: 8px !important;
+        font-weight: 600 !important;
+        width: 100% !important;
+        margin-top: 10px !important;
     }
             
     </style>
 """, unsafe_allow_html=True)
-# -----------------------------
-# Custom CSS & Animations (Dark Mode + High Contrast) - الكود المُعدّل ينتهي هنا
-# -----------------------------
 
 # -----------------------------
-# Session State Initialization (Kept as is)
+# Session State Initialization
 # -----------------------------
 if 'users' not in st.session_state:
     st.session_state['users'] = [
@@ -442,13 +511,18 @@ if 'selected_service' not in st.session_state:
     st.session_state['selected_service'] = None
 
 if 'selected_role_reg' not in st.session_state:
-    st.session_state['selected_role_reg'] = 'user' 
+    st.session_state['selected_role_reg'] = 'user'
+
+if 'chatbot' not in st.session_state:
+    st.session_state['chatbot'] = Chatbot(st.session_state['services'])
+
+if 'chat_history' not in st.session_state:
+    st.session_state['chat_history'] = []
 
 # -----------------------------
-# Auth Functions (Kept as is)
+# Auth Functions
 # -----------------------------
 def login(email, password): 
-    # Try logging in as 'user' first, then 'technical'
     if check_login(email, password, 'user'):
         return True, 'user'
     elif check_login(email, password, 'technical'):
@@ -469,7 +543,7 @@ def check_login(email, password, role_to_check):
 def register(email, password, name, role):
     for user in st.session_state['users']:
         if user.get('email') == email:
-            return False 
+            return False
     st.session_state['users'].append({
         'email': email,
         'password': password,
@@ -484,7 +558,7 @@ def logout():
     st.rerun()
 
 # -----------------------------
-# Navigation Component (Kept as is)
+# Navigation Component
 # -----------------------------
 def top_nav():
     user = st.session_state['current_user']
@@ -515,7 +589,7 @@ def top_nav():
         st.markdown('</div>', unsafe_allow_html=True)
 
 # -----------------------------
-# Footer Component (Kept as is)
+# Footer Component
 # -----------------------------
 def app_footer():
     st.markdown("""
@@ -538,11 +612,9 @@ def app_footer():
         </div>
     """, unsafe_allow_html=True)
 
-
 # -----------------------------
 # Pages
 # -----------------------------
-
 def home_page():
     # Only show this content if NO user is logged in
     if st.session_state['current_user']:
@@ -553,7 +625,7 @@ def home_page():
         st.rerun()
         return
 
-    # --- 1. Enlarged Hero Section (Service Platform) ---
+    # --- 1. Enlarged Hero Section ---
     st.markdown("""
         <div class="animate-enter hero-section">
             <h1 style="color: #a29bfe;">Service Connect Platform ✨</h1>
@@ -563,7 +635,7 @@ def home_page():
         </div>
     """, unsafe_allow_html=True)
 
-    # --- 2. Get Started Section (Login/Register) ---
+    # --- 2. Get Started Section ---
     st.markdown("""
         <div style="margin-top: 50px; text-align: center;">
             <h2 style="color: white; margin-bottom: 30px;">Get Started Now</h2>
@@ -589,7 +661,7 @@ def home_page():
             st.rerun()
         st.markdown('</div>', unsafe_allow_html=True)
 
-    # --- 3. About Us Section (6 Boxes - FINAL) ---
+    # --- 3. About Us Section ---
     st.markdown("""
         <div style="margin-top: 80px; text-align: center;">
             <h2 style="color: white; margin-bottom: 30px;">About Us: Our Mission & Values</h2>
@@ -632,7 +704,7 @@ def home_page():
             </div>
         """, unsafe_allow_html=True)
         
-    # Row 2 (3 New Boxes - Added for the final count)
+    # Row 2 (3 Boxes)
     cols_about_2 = st.columns(3)
 
     with cols_about_2[0]:
@@ -668,7 +740,6 @@ def home_page():
             </div>
         """, unsafe_allow_html=True)
 
-
 def services_page():
     # Security check: only users can see this
     if not st.session_state['current_user'] or st.session_state['current_user']['role'] != 'user':
@@ -685,7 +756,6 @@ def services_page():
     # Filter
     categories = ["All"] + sorted(list({s['category'] for s in st.session_state['services']}))
     
-    # 🔥🔥🔥 تعديل التنسيق هنا: نستخدم عموداً أصغر لحقل الفلترة 🔥🔥🔥
     cat_col, _ = st.columns([0.4, 3]) 
     with cat_col:
         selected_cat = st.selectbox("Filter by Category", categories)
@@ -698,7 +768,6 @@ def services_page():
     cols = st.columns(3)
     for i, s in enumerate(services):
         with cols[i % 3]:
-            # 🔥🔥🔥 تم التعديل هنا لعرض النص الفعلي بدلاً من divs HTML tags كما ظهر في الصورة 🔥🔥🔥
             st.markdown(f"""
                 <div class="service-card animate-enter" style="animation-delay: {i*0.05}s">
                     <div class="card-icon">{s['icon']}</div>
@@ -709,17 +778,16 @@ def services_page():
                 </div>
             """, unsafe_allow_html=True)
             
-            # Action Button - هذا الزر سيطبق عليه تنسيق الـ .stButton > button البنفسجي
+            # Action Button
             if st.button(f"Select", key=f"srv_{s['id']}"):
                 st.session_state['selected_service'] = s
                 st.rerun()
             
             st.markdown("<div style='margin-bottom: 20px;'></div>", unsafe_allow_html=True)
-            
 
 def service_details_page(service):
     
-    # 🔥🔥🔥 Back button: تم تضمينه في عمود صغير لتصغير الزر ليتناسب مع التصميم 🔥🔥🔥
+    # Back button
     back_col, _ = st.columns([0.2, 1])
     with back_col:
         if st.button("← Back to List"):
@@ -752,7 +820,6 @@ def service_details_page(service):
         col1, col2 = st.columns(2)
         with col1:
             techs = ["Alice (Top Rated)", "Bob (Expert)", "Charlie (Fast)", "David (Premium)"]
-            # 🔥🔥🔥 قائمة CHOOSE PROFESSIONAL هنا 🔥🔥🔥
             selected_tech = st.selectbox("Choose Professional", techs)
             date = st.date_input("Preferred Date", min_value=datetime.today())
         
@@ -761,7 +828,7 @@ def service_details_page(service):
             payment_method = st.radio("Select how you want to pay:", ["Credit Card (Online)", "Cash on Delivery", "Digital Wallet"], label_visibility="collapsed")
             notes = st.text_area("Special Instructions (Optional)")
 
-        # زر Confirm Booking يتبع الآن تنسيق الأزرار البنفسجية
+        # Confirm Booking button
         submitted = st.form_submit_button("Confirm Booking")
         
         if submitted:
@@ -769,7 +836,7 @@ def service_details_page(service):
             with st.spinner("Processing your request..."):
                 time.sleep(1.5)
             
-            # Simple order logic (Kept as is)
+            # Create order
             order = {
                 'id': str(uuid.uuid4()),
                 'user_email': st.session_state['current_user']['email'],
@@ -836,7 +903,7 @@ def technical_orders_page():
 
     st.markdown(f"**Total Pending Orders:** {len(pending_orders)}")
     
-    # Order display logic (Kept as is)
+    # Order display logic
     cols = st.columns([1, 2, 2, 2, 1, 2])
     cols[0].markdown("**ID**")
     cols[1].markdown("**Service**")
@@ -858,7 +925,6 @@ def technical_orders_page():
         row_cols[4].markdown(f"**${o['price']}**")
         
         with row_cols[5]:
-            # زر Mark as Done يتبع الآن تنسيق الأزرار البنفسجية
             if st.button("Mark as Done", key=f"complete_{o['id']}", use_container_width=True):
                 for order in st.session_state['orders']:
                     if order['id'] == o['id']:
@@ -870,9 +936,8 @@ def technical_orders_page():
 
         st.markdown("<div style='margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.05);'></div>", unsafe_allow_html=True)
 
-
 def login_page():
-    # If already logged in, redirect to the correct page
+    # If already logged in, redirect
     if st.session_state['current_user']:
         if st.session_state['current_user']['role'] == 'user':
             st.session_state['current_page'] = 'Services'
@@ -881,7 +946,7 @@ def login_page():
         st.rerun()
         return
 
-    # Back button - هذا الزر سيطبق عليه تنسيق الـ .stButton > button البنفسجي
+    # Back button
     if st.button("← Back to Home"):
         st.session_state['current_page'] = 'Home'
         st.rerun()
@@ -893,7 +958,6 @@ def login_page():
             email = st.text_input("Email") 
             password = st.text_input("Password", type="password")
             
-            # زر Login يتبع الآن تنسيق الأزرار البنفسجية
             if st.form_submit_button("Login"):
                 success, role = login(email, password)
                 if success:
@@ -912,7 +976,7 @@ def register_page():
         st.rerun()
         return
     
-    # Back button (NEW) - هذا الزر سيطبق عليه تنسيق الـ .stButton > button البنفسجي
+    # Back button
     if st.button("← Back to Home"):
         st.session_state['current_page'] = 'Home'
         st.rerun()
@@ -921,7 +985,7 @@ def register_page():
     with col2:
         st.markdown("<div class='animate-enter' style='text-align: center; margin-bottom: 30px;'><h2 style='color: white;'>Join Service Connect! 🚀</h2></div>", unsafe_allow_html=True)
         
-        # Role Selection UI (User or Technical)
+        # Role Selection UI
         st.markdown("#### Select your role:")
         role_cols = st.columns(2)
         
@@ -930,7 +994,6 @@ def register_page():
             is_user_selected = st.session_state['selected_role_reg'] == 'user'
             btn_class = "auth-role-button-selected" if is_user_selected else "auth-role-button"
             if st.markdown(f'<div class="{btn_class}">', unsafe_allow_html=True):
-                # ملاحظة: هذه الأزرار لها تنسيق خاص (auth-role-button) وليست مثل الأزرار العامة.
                 if st.button("Client/User 🧑", key="reg_user_role", use_container_width=True):
                     st.session_state['selected_role_reg'] = 'user'
                     st.rerun()
@@ -956,7 +1019,6 @@ def register_page():
             password = st.text_input("Password", type="password")
             confirm_password = st.text_input("Confirm Password", type="password")
             
-            # زر Register يتبع الآن تنسيق الأزرار البنفسجية
             if st.form_submit_button("Register"):
                 if not name or not email or not password or not confirm_password:
                     st.error("Please fill in all fields.")
@@ -965,7 +1027,7 @@ def register_page():
                 elif register(email, password, name, role):
                     st.success(f"Registration successful! Please login as a **{role.capitalize()}**.")
                     st.session_state['current_page'] = "Login"
-                    st.session_state['selected_role_reg'] = 'user' # Reset role selection
+                    st.session_state['selected_role_reg'] = 'user'
                     time.sleep(1)
                     st.rerun()
                 else:
@@ -990,16 +1052,15 @@ def profile_page():
 
     st.markdown("---")
     
-    # زر Logout يتبع الآن تنسيق الأزرار البنفسجية
+    # Logout button
     if st.button("Logout", key="profile_logout", use_container_width=True):
         logout()
-
 
 # -----------------------------
 # Main App Logic
 # -----------------------------
 def main():
-    # 1. Navigation (always at the top after main content start)
+    # 1. Navigation (always at the top)
     if st.session_state['current_user']:
         top_nav()
 
@@ -1023,6 +1084,63 @@ def main():
 
     # 3. Footer (always at the bottom)
     app_footer()
+
+        # -----------------------------
+    # Chatbot UI - NEW WHITE DESIGN
+    # -----------------------------
+    with st.sidebar:
+        # Start chatbot container with white background
+        st.markdown("""
+            <div class="chatbot-container">
+                <div class="chatbot-header">
+                    <h2>🤖 AI Assistant</h2>
+                    <p>Ask me anything about our services!</p>
+                </div>
+                
+                <div class="chat-messages-area">
+        """, unsafe_allow_html=True)
+        
+        # Display chat messages
+        if len(st.session_state['chat_history']) == 0:
+            st.markdown("""
+                <div class="chat-welcome-message">
+                    <p style='font-size: 16px; font-weight: 600;'>👋 Hi! I'm your AI assistant</p>
+                    <p style='font-size: 14px;'>Ask me about services, prices, or how to book!</p>
+                </div>
+            """, unsafe_allow_html=True)
+        else:
+            for message in st.session_state['chat_history']:
+                with st.chat_message(message["role"]):
+                    st.markdown(message["content"])
+        
+        st.markdown("</div>", unsafe_allow_html=True)  # Close chat-messages-area
+
+        # Clear chat button with custom styling
+        if len(st.session_state['chat_history']) > 0:
+            st.markdown('<div class="clear-chat-btn">', unsafe_allow_html=True)
+            if st.button("🗑️ Clear Chat History", key="clear_chat", use_container_width=True):
+                st.session_state['chat_history'] = []
+                st.rerun()
+            st.markdown('</div>', unsafe_allow_html=True)
+
+        # Chat input
+        prompt = st.chat_input("Type your question here...")
+        
+        if prompt:
+            # Add user message
+            st.session_state['chat_history'].append({"role": "user", "content": prompt})
+
+            # Get Bot Response
+            user_role = st.session_state['current_user']['role'] if st.session_state['current_user'] else 'guest'
+            st.session_state['chatbot'].update_context(user_role, st.session_state['current_page'])
+            
+            response = st.session_state['chatbot'].get_response(prompt)
+
+            # Add assistant response
+            st.session_state['chat_history'].append({"role": "assistant", "content": response})
+            st.rerun()
+        
+        st.markdown("</div>", unsafe_allow_html=True)  # Close chatbot-container
 
 if __name__ == "__main__":
     main()
